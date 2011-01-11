@@ -1,3 +1,4 @@
 dist
 .project_env.rc
 .path_progress
+.DS_Store
