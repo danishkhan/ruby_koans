@@ -15,6 +15,7 @@ today    = Time.now.strftime("%Y-%m-%d")
 TAR_FILE = "#{DIST_DIR}/rubykoans-#{today}.tgz"
 ZIP_FILE = "#{DIST_DIR}/rubykoans-#{today}.zip"
 
+CLEAN.include("**/*.rbc")
 CLOBBER.include(DIST_DIR)
 
 module Koans
@@ -54,6 +55,27 @@ module Koans
         end
       end
     end
+  end
+end
+
+module RubyImpls
+  # Calculate the list of relevant Ruby implementations.
+  def self.find_ruby_impls
+    rubys = `rvm list`.gsub(/=>/,'').split(/\n/).sort
+    expected.map { |impl|
+      last = rubys.grep(Regexp.new(Regexp.quote(impl))).last
+      last ? last.split.first : nil
+    }.compact
+  end
+
+  # Return a (cached) list of relevant Ruby implementations.
+  def self.list
+    @list ||= find_ruby_impls
+  end
+
+  # List of expected ruby implementations.
+  def self.expected
+    %w(ruby-1.8.6 ruby-1.8.7 ruby-1.9.2 jruby ree)
   end
 end
 
@@ -105,5 +127,40 @@ end
 SRC_FILES.each do |koan_src|
   file koan_src.pathmap("#{PROB_DIR}/%f") => [PROB_DIR, koan_src] do |t|
     Koans.make_koan_file koan_src, t.name
+  end
+end
+
+task :run do
+  puts 'koans'
+  Dir.chdir("src") do
+    puts "in #{Dir.pwd}"
+    sh "ruby path_to_enlightenment.rb"
+  end
+end
+
+
+desc "Pre-checkin tests (=> run_all)"
+task :cruise => :run_all
+
+desc "Run the completed koans againts a list of relevant Ruby Implementations"
+task :run_all do
+  results = []
+  RubyImpls.list.each do |impl|
+    puts "=" * 40
+    puts "On Ruby #{impl}"
+    sh "rvm #{impl} rake run"
+    results << [impl, "RAN"]
+    puts
+  end
+  puts "=" * 40
+  puts "Summary:"
+  puts
+  results.each do |impl, res|
+    puts "#{impl} => RAN"
+  end
+  puts
+  RubyImpls.expected.each do |requested_impl|
+    impl_pattern = Regexp.new(Regexp.quote(requested_impl))
+    puts "No Results for #{requested_impl}" unless results.detect { |x| x.first =~ impl_pattern }
   end
 end
