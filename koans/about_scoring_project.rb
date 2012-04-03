@@ -31,6 +31,9 @@ require File.expand_path(File.dirname(__FILE__) + '/edgecase')
 
 def score(dice)
   # You need to write this method
+  if dice == []
+    return 0
+  end  
 end
 
 class AboutScoringProject < EdgeCase::Koan
