@@ -31,9 +31,22 @@ require File.expand_path(File.dirname(__FILE__) + '/edgecase')
 
 def score(dice)
   # You need to write this method
-  if dice == []
-    return 0
-  end  
+  # make the hash default to 0 so that += will work correctly
+  hash = Hash.new(0)
+
+  dice.each do |v|
+    hash[v] += 1
+  end
+
+  hash.each do |k, v|
+    if ( k == 1 )
+      if ( v == 1 )
+        return 100
+      elsif ( v == 2 )
+        return 200
+      elsif ( v == 3 )
+        return
+  end
 end
 
 class AboutScoringProject < EdgeCase::Koan
